@@ -9,7 +9,7 @@ function Layout() {
       <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
         <div className="container">
           <Link className="navbar-brand fw-bold" to="/">
-            🍎 Food Search
+            Packaged Food Search
           </Link>
           <button 
             className="navbar-toggler" 
@@ -50,23 +50,6 @@ function Layout() {
         <Outlet />
       </main>
 
-      {/* Footer */}
-      <footer className="bg-light py-3 mt-auto border-top">
-        <div className="container text-center text-muted">
-          <small>
-            Powered by{' '}
-            <a 
-              href="https://world.openfoodfacts.org/" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-decoration-none"
-            >
-              Open Food Facts
-            </a>
-            {' '}&copy; {new Date().getFullYear()}
-          </small>
-        </div>
-      </footer>
     </div>
   );
 }

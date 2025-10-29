@@ -56,9 +56,8 @@ function FoodSearch() {
         <div className="col-lg-10">
           {/* Header */}
           <div className="text-center mb-5">
-            <h1 className="display-4 fw-bold mb-3">Find Food Nutrition</h1>
+            <h1 className="display-4 fw-bold mb-3">Packaged Food Finder</h1>
             <p className="lead text-muted">
-              Search thousands of foods and discover their nutritional content
             </p>
           </div>
 
@@ -96,19 +95,13 @@ function FoodSearch() {
             <div className={selectedFood ? 'col-lg-6' : 'col-lg-12'}>
               {hasSearched && !isLoading && results.length === 0 && !error && (
                 <div className="text-center py-5">
-                  <div className="display-1 mb-3">🔍</div>
-                  <h4 className="text-muted">No results found</h4>
-                  <p className="text-muted">Try searching for something else</p>
+                  <h4 className="text-muted">no results found</h4>
                 </div>
               )}
               
               {!hasSearched && !isLoading && (
                 <div className="text-center py-5">
-                  <div className="display-1 mb-3">🍎</div>
-                  <h4 className="text-muted">Start by searching for a food</h4>
-                  <p className="text-muted">
-                    Try: apple, chicken breast, brown rice, almonds...
-                  </p>
+                  <h4 className="text-muted">search for a food</h4>
                 </div>
               )}
 

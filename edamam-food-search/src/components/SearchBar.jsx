@@ -56,7 +56,7 @@ function SearchBar({ onSearch, isLoading }) {
           ref={inputRef}
           type="text"
           className="form-control border-start-0 border-end-0"
-          placeholder="Search for foods (e.g., apple, chicken breast, oats)..."
+          placeholder="type to search foods..."
           value={query}
           onChange={handleInputChange}
           disabled={isLoading}

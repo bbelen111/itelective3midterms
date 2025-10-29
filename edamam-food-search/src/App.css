@@ -1,0 +1,23 @@
+/* Component-specific styles */
+.search-form {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.results-list {
+  margin-top: 2rem;
+}
+
+.food-detail {
+  position: sticky;
+  top: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+  .food-detail {
+    position: static;
+    margin-top: 2rem;
+  }
+}
+

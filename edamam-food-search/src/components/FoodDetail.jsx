@@ -195,6 +195,18 @@ function FoodDetail({ food, onClose }) {
                     <span className="badge bg-primary rounded-pill">{nutrients.cholesterol}mg</span>
                   </li>
                 )}
+                {nutrients.saturatedFat > 0 && (
+                  <li className="list-group-item d-flex justify-content-between align-items-center">
+                    Saturated Fat
+                    <span className="badge bg-primary rounded-pill">{nutrients.saturatedFat}g</span>
+                  </li>
+                )}
+                {nutrients.salt > 0 && (
+                  <li className="list-group-item d-flex justify-content-between align-items-center">
+                    Salt
+                    <span className="badge bg-primary rounded-pill">{nutrients.salt}g</span>
+                  </li>
+                )}
               </ul>
             </div>
           )}

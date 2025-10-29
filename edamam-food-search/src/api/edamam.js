@@ -1,11 +1,11 @@
 /**
- * Edamam API Module
- * Handles all API requests to Edamam Food Database API
+ * Open Food Facts API Module
+ * Handles all API requests to Open Food Facts API
+ * Note: Open Food Facts is a free, open database that doesn't require API keys!
  */
 
-const APP_ID = import.meta.env.VITE_EDAMAM_APP_ID;
-const APP_KEY = import.meta.env.VITE_EDAMAM_APP_KEY;
-const BASE_URL = 'https://api.edamam.com/api/food-database/v2';
+const BASE_URL = 'https://world.openfoodfacts.org';
+const USER_AGENT = 'EdamamFoodSearch/1.0 (Educational Project)'; // Required by Open Food Facts
 
 // In-memory cache for search results
 const searchCache = new Map();
@@ -90,10 +90,6 @@ export async function searchFoods(query) {
     return [];
   }
 
-  if (!APP_ID || !APP_KEY) {
-    throw new Error('Edamam API credentials not configured. Please check your .env.local file.');
-  }
-
   const trimmedQuery = query.trim().toLowerCase();
   
   // Check cache first
@@ -104,21 +100,40 @@ export async function searchFoods(query) {
   }
 
   try {
-    const url = `${BASE_URL}/parser?app_id=${APP_ID}&app_key=${APP_KEY}&ingr=${encodeURIComponent(trimmedQuery)}&nutrition-type=cooking`;
+    // Open Food Facts search endpoint
+    const url = `${BASE_URL}/cgi/search.pl?search_terms=${encodeURIComponent(trimmedQuery)}&search_simple=1&action=process&json=1&page_size=20&fields=code,product_name,brands,categories,image_url,nutriments,serving_size,quantity`;
     
-    const response = await fetchWithRetry(url);
+    const response = await fetchWithRetry(url, {
+      headers: {
+        'User-Agent': USER_AGENT
+      }
+    });
     const data = await response.json();
     
     // Parse and format the results
-    const results = data.hints?.map(hint => ({
-      foodId: hint.food.foodId,
-      label: hint.food.label,
-      brand: hint.food.brand || null,
-      category: hint.food.category || null,
-      image: hint.food.image || null,
-      nutrients: hint.food.nutrients || {},
-      measures: hint.measures || []
-    })) || [];
+    const results = data.products?.map(product => ({
+      foodId: product.code,
+      label: product.product_name || 'Unknown Product',
+      brand: product.brands || null,
+      category: product.categories?.split(',')[0]?.trim() || null,
+      image: product.image_url || null,
+      servingSize: product.serving_size || product.quantity || null,
+      nutrients: {
+        ENERC_KCAL: product.nutriments?.['energy-kcal_100g'] || product.nutriments?.['energy-kcal'] || 0,
+        PROCNT: product.nutriments?.proteins_100g || product.nutriments?.proteins || 0,
+        FAT: product.nutriments?.fat_100g || product.nutriments?.fat || 0,
+        CHOCDF: product.nutriments?.carbohydrates_100g || product.nutriments?.carbohydrates || 0,
+        FIBTG: product.nutriments?.fiber_100g || product.nutriments?.fiber || 0,
+        SUGAR: product.nutriments?.sugars_100g || product.nutriments?.sugars || 0,
+        NA: product.nutriments?.sodium_100g || product.nutriments?.sodium || 0,
+        CHOLE: product.nutriments?.cholesterol_100g || product.nutriments?.cholesterol || 0
+      },
+      measures: [
+        { uri: 'per_100g', label: 'per 100g' },
+        { uri: 'per_serving', label: product.serving_size ? `per serving (${product.serving_size})` : 'per serving' }
+      ],
+      rawProduct: product // Keep raw data for detailed view
+    })).filter(product => product.label && product.label !== 'Unknown Product') || [];
     
     // Cache the results
     addToCache(`search:${trimmedQuery}`, results);
@@ -132,17 +147,13 @@ export async function searchFoods(query) {
 
 /**
  * Get detailed nutrients for a food item
- * @param {string} foodId - Food ID
+ * @param {string} foodId - Food barcode/ID from Open Food Facts
  * @param {string} label - Food label/name
  * @param {object} measureUri - Measure URI object (optional)
  * @param {number} quantity - Quantity (default: 1)
  * @returns {Promise<object>} Nutrient details
  */
 export async function getFoodNutrients(foodId, label, measureUri = null, quantity = 1) {
-  if (!APP_ID || !APP_KEY) {
-    throw new Error('Edamam API credentials not configured. Please check your .env.local file.');
-  }
-
   const cacheKey = `nutrients:${foodId}:${measureUri?.uri || 'default'}:${quantity}`;
   
   // Check cache first
@@ -153,44 +164,48 @@ export async function getFoodNutrients(foodId, label, measureUri = null, quantit
   }
 
   try {
-    const url = `${BASE_URL}/nutrients?app_id=${APP_ID}&app_key=${APP_KEY}`;
-    
-    // Prepare the request body
-    const ingredient = {
-      quantity: quantity,
-      foodId: foodId
-    };
-    
-    if (measureUri) {
-      ingredient.measureURI = measureUri.uri;
-    }
-
-    const requestBody = {
-      ingredients: [ingredient]
-    };
+    // Get product details from Open Food Facts
+    const url = `${BASE_URL}/api/v2/product/${foodId}.json`;
     
     const response = await fetchWithRetry(url, {
-      method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
+        'User-Agent': USER_AGENT
+      }
     });
     
     const data = await response.json();
     
-    // Format the nutrient data
+    if (!data.product) {
+      throw new Error('Product not found');
+    }
+    
+    const product = data.product;
+    const nutriments = product.nutriments || {};
+    
+    // Determine multiplier based on measure type and quantity
+    let multiplier = quantity;
+    const isPer100g = !measureUri || measureUri.uri === 'per_100g';
+    
+    if (!isPer100g && measureUri?.uri === 'per_serving') {
+      // Try to calculate serving size in grams
+      const servingSize = product.serving_quantity || 100; // Default to 100g if not specified
+      multiplier = (servingSize / 100) * quantity;
+    }
+    
+    // Format the nutrient data (Open Food Facts provides per 100g by default)
     const nutrients = {
-      calories: Math.round(data.calories || 0),
-      protein: Math.round((data.totalNutrients?.PROCNT?.quantity || 0) * 10) / 10,
-      fat: Math.round((data.totalNutrients?.FAT?.quantity || 0) * 10) / 10,
-      carbs: Math.round((data.totalNutrients?.CHOCDF?.quantity || 0) * 10) / 10,
-      fiber: Math.round((data.totalNutrients?.FIBTG?.quantity || 0) * 10) / 10,
-      sugar: Math.round((data.totalNutrients?.SUGAR?.quantity || 0) * 10) / 10,
-      sodium: Math.round((data.totalNutrients?.NA?.quantity || 0) * 10) / 10,
-      cholesterol: Math.round((data.totalNutrients?.CHOLE?.quantity || 0) * 10) / 10,
-      weight: Math.round((data.totalWeight || 0) * 10) / 10,
-      allNutrients: data.totalNutrients || {}
+      calories: Math.round((nutriments['energy-kcal_100g'] || nutriments['energy-kcal'] || 0) * multiplier),
+      protein: Math.round((nutriments.proteins_100g || nutriments.proteins || 0) * multiplier * 10) / 10,
+      fat: Math.round((nutriments.fat_100g || nutriments.fat || 0) * multiplier * 10) / 10,
+      carbs: Math.round((nutriments.carbohydrates_100g || nutriments.carbohydrates || 0) * multiplier * 10) / 10,
+      fiber: Math.round((nutriments.fiber_100g || nutriments.fiber || 0) * multiplier * 10) / 10,
+      sugar: Math.round((nutriments.sugars_100g || nutriments.sugars || 0) * multiplier * 10) / 10,
+      sodium: Math.round((nutriments.sodium_100g || nutriments.sodium || 0) * multiplier * 1000 * 10) / 10, // Convert to mg
+      cholesterol: Math.round((nutriments.cholesterol_100g || nutriments.cholesterol || 0) * multiplier * 1000 * 10) / 10, // Convert to mg
+      weight: Math.round(100 * multiplier * 10) / 10, // Weight in grams
+      saturatedFat: Math.round((nutriments['saturated-fat_100g'] || nutriments['saturated-fat'] || 0) * multiplier * 10) / 10,
+      salt: Math.round((nutriments.salt_100g || nutriments.salt || 0) * multiplier * 10) / 10,
+      allNutrients: nutriments
     };
     
     // Cache the results

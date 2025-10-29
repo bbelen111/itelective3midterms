@@ -78,7 +78,7 @@ function FoodSearch() {
               )}
               {error.includes('credentials') && (
                 <p className="mb-0 mt-2">
-                  Please ensure your Edamam API credentials are properly configured in your <code>.env.local</code> file.
+                  Open Food Facts is free and doesn't require credentials. Please check your internet connection.
                 </p>
               )}
               <button

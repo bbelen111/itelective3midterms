@@ -8,9 +8,9 @@ function About() {
               <h1 className="display-5 fw-bold mb-4">About This App</h1>
               
               <div className="mb-4">
-                <h3 className="h4 mb-3">🍎 Edamam Food Search</h3>
+                <h3 className="h4 mb-3">🍎 Food Search App</h3>
                 <p className="lead">
-                  A simple and intuitive food nutrition search application built with React and powered by the Edamam Food Database API.
+                  A simple and intuitive food nutrition search application built with React and powered by the Open Food Facts API - a free, open database.
                 </p>
               </div>
 
@@ -33,36 +33,42 @@ function About() {
                   <li className="mb-2"><strong>Frontend:</strong> React + Vite</li>
                   <li className="mb-2"><strong>Routing:</strong> React Router</li>
                   <li className="mb-2"><strong>Styling:</strong> Bootstrap 5 (Bootswatch theme)</li>
-                  <li className="mb-2"><strong>API:</strong> Edamam Food Database</li>
+                  <li className="mb-2"><strong>API:</strong> Open Food Facts (Free & Open)</li>
                 </ul>
               </div>
 
               <hr className="my-4" />
 
               <div className="mb-4">
-                <h4>About Edamam</h4>
+                <h4>About Open Food Facts</h4>
                 <p>
                   This application uses the{' '}
                   <a 
-                    href="https://www.edamam.com/" 
+                    href="https://world.openfoodfacts.org/" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-decoration-none"
                   >
-                    Edamam API
+                    Open Food Facts API
                   </a>
-                  , which provides nutrition data from a comprehensive database of foods, including:
+                  , a free and open database of food products from around the world. It's like Wikipedia for food!
                 </p>
                 <ul>
-                  <li>Generic foods</li>
-                  <li>Branded/packaged foods</li>
-                  <li>Restaurant items</li>
-                  <li>Recipe ingredients</li>
+                  <li><strong>No API Keys Required:</strong> Completely free to use</li>
+                  <li><strong>Community-Driven:</strong> Data added by users worldwide</li>
+                  <li><strong>Millions of Products:</strong> Branded foods, packaged goods, and more</li>
+                  <li><strong>Global Coverage:</strong> Products from countries around the world</li>
+                  <li><strong>Open Data:</strong> Licensed under ODbL</li>
                 </ul>
+                <p className="mt-3">
+                  <strong>How it works:</strong> Users scan product barcodes and upload nutritional information 
+                  from packaging. This creates a collaborative, ever-growing database that everyone can use for free.
+                </p>
                 <p className="text-muted mt-3">
                   <small>
-                    <strong>Note:</strong> The free tier of the Edamam API has rate limits. 
-                    For production use, consider implementing a server-side proxy to secure your API keys.
+                    <strong>Note:</strong> Data quality varies by product as it depends on community contributions. 
+                    Some products have complete nutritional data while others may be partial. You can help by 
+                    contributing to Open Food Facts!
                   </small>
                 </p>
               </div>
@@ -89,11 +95,20 @@ function About() {
                 <ul className="mb-0">
                   <li>
                     <a 
-                      href="https://developer.edamam.com/" 
+                      href="https://world.openfoodfacts.org/" 
                       target="_blank" 
                       rel="noopener noreferrer"
                     >
-                      Edamam Developer Portal
+                      Open Food Facts Website
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="https://wiki.openfoodfacts.org/API" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      Open Food Facts API Documentation
                     </a>
                   </li>
                   <li>

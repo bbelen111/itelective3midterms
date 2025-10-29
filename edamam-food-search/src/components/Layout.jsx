@@ -9,7 +9,7 @@ function Layout() {
       <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
         <div className="container">
           <Link className="navbar-brand fw-bold" to="/">
-            🍎 Edamam Food Search
+            🍎 Food Search
           </Link>
           <button 
             className="navbar-toggler" 
@@ -56,12 +56,12 @@ function Layout() {
           <small>
             Powered by{' '}
             <a 
-              href="https://www.edamam.com/" 
+              href="https://world.openfoodfacts.org/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-decoration-none"
             >
-              Edamam API
+              Open Food Facts
             </a>
             {' '}&copy; {new Date().getFullYear()}
           </small>

@@ -15,9 +15,23 @@ export const searchFoods = async (req, res) => {
     res.json(results);
   } catch (error) {
     console.error('Error in searchFoods controller:', error);
-    res.status(500).json({ 
+    
+    // Determine appropriate status code
+    let statusCode = 500;
+    let userMessage = error.message;
+    
+    if (error.message.includes('timeout')) {
+      statusCode = 504;
+      userMessage = 'The search is taking too long. Please try a different search term or try again later.';
+    } else if (error.message.includes('unavailable')) {
+      statusCode = 503;
+    } else if (error.message.includes('Rate limit')) {
+      statusCode = 429;
+    }
+    
+    res.status(statusCode).json({ 
       error: 'Failed to search foods', 
-      message: error.message 
+      message: userMessage
     });
   }
 };
@@ -49,9 +63,23 @@ export const getFoodNutrients = async (req, res) => {
     res.json(nutrients);
   } catch (error) {
     console.error('Error in getFoodNutrients controller:', error);
-    res.status(500).json({ 
+    
+    let statusCode = 500;
+    let userMessage = error.message;
+    
+    if (error.message.includes('timeout')) {
+      statusCode = 504;
+      userMessage = 'Request took too long. Please try again.';
+    } else if (error.message.includes('unavailable')) {
+      statusCode = 503;
+    } else if (error.message.includes('not found')) {
+      statusCode = 404;
+      userMessage = 'Food item not found.';
+    }
+    
+    res.status(statusCode).json({ 
       error: 'Failed to fetch nutrients', 
-      message: error.message 
+      message: userMessage
     });
   }
 };
@@ -73,16 +101,24 @@ export const getRandomFood = async (req, res) => {
     res.json(randomFood);
   } catch (error) {
     console.error('Error in getRandomFood controller:', error);
-    res.status(500).json({ 
+    
+    let statusCode = 500;
+    let userMessage = error.message;
+    
+    if (error.message.includes('timeout')) {
+      statusCode = 504;
+      userMessage = 'Request took too long. Please try again.';
+    } else if (error.message.includes('unavailable')) {
+      statusCode = 503;
+    }
+    
+    res.status(statusCode).json({ 
       error: 'Failed to fetch random food', 
-      message: error.message 
+      message: userMessage
     });
   }
 };
 
-/**
- * Clear cache
- */
 export const clearCache = async (req, res) => {
   try {
     foodService.clearCache();

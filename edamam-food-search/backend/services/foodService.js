@@ -6,30 +6,57 @@
 const BASE_URL = 'https://world.openfoodfacts.org';
 const USER_AGENT = 'EdamamFoodSearch/1.0 (Educational Project)';
 
-// In-memory cache for search results
 const searchCache = new Map();
 const MAX_CACHE_SIZE = 10;
 
-// Exponential backoff retry configuration
-const MAX_RETRIES = 2;
-const BASE_DELAY = 1000; // 1 second
+const MAX_RETRIES = 3;
+const BASE_DELAY = 2000; // Increased to 2 seconds
+const FETCH_TIMEOUT = 15000; // 15 second timeout
 
-/**
- * Sleep utility for retry delays
- */
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
- * Fetch with exponential backoff retry for 429 responses
+ * Fetch with timeout
+ */
+async function fetchWithTimeout(url, options = {}, timeout = FETCH_TIMEOUT) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout - API took too long to respond');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch with exponential backoff retry for various error responses
  */
 async function fetchWithRetry(url, options = {}, retryCount = 0) {
   try {
-    const response = await fetch(url, options);
+    const response = await fetchWithTimeout(url, options);
     
-    // Handle rate limiting with exponential backoff
+    // Retry on rate limiting
     if (response.status === 429 && retryCount < MAX_RETRIES) {
       const delay = BASE_DELAY * Math.pow(2, retryCount);
       console.warn(`Rate limited (429). Retrying in ${delay}ms... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
+      await sleep(delay);
+      return fetchWithRetry(url, options, retryCount + 1);
+    }
+    
+    // Retry on server errors (500, 502, 503, 504)
+    if ([500, 502, 503, 504].includes(response.status) && retryCount < MAX_RETRIES) {
+      const delay = BASE_DELAY * Math.pow(2, retryCount);
+      console.warn(`Server error (${response.status}). Retrying in ${delay}ms... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
       await sleep(delay);
       return fetchWithRetry(url, options, retryCount + 1);
     }
@@ -38,14 +65,23 @@ async function fetchWithRetry(url, options = {}, retryCount = 0) {
       if (response.status === 429) {
         throw new Error('Rate limit exceeded. Please try again later.');
       }
+      if ([500, 502, 503, 504].includes(response.status)) {
+        throw new Error('The food database is temporarily unavailable. Please try again in a moment.');
+      }
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
     
     return response;
   } catch (error) {
-    if (retryCount < MAX_RETRIES && error.message.includes('fetch')) {
+    // Retry on network errors or timeouts
+    if (retryCount < MAX_RETRIES && (
+      error.message.includes('fetch') || 
+      error.message.includes('timeout') ||
+      error.message.includes('ECONNRESET') ||
+      error.message.includes('ETIMEDOUT')
+    )) {
       const delay = BASE_DELAY * Math.pow(2, retryCount);
-      console.warn(`Network error. Retrying in ${delay}ms... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
+      console.warn(`Network error: ${error.message}. Retrying in ${delay}ms... (Attempt ${retryCount + 1}/${MAX_RETRIES})`);
       await sleep(delay);
       return fetchWithRetry(url, options, retryCount + 1);
     }
@@ -53,9 +89,6 @@ async function fetchWithRetry(url, options = {}, retryCount = 0) {
   }
 }
 
-/**
- * Manage cache with size limit
- */
 function addToCache(key, value) {
   if (searchCache.size >= MAX_CACHE_SIZE) {
     const firstKey = searchCache.keys().next().value;
@@ -67,9 +100,7 @@ function addToCache(key, value) {
   });
 }
 
-/**
- * Get from cache if not expired (cache for 5 minutes)
- */
+
 function getFromCache(key) {
   const cached = searchCache.get(key);
   if (cached && (Date.now() - cached.timestamp) < 5 * 60 * 1000) {
@@ -78,9 +109,7 @@ function getFromCache(key) {
   return null;
 }
 
-/**
- * Search for foods by query string
- */
+
 export async function searchFoods(query) {
   if (!query || query.trim().length === 0) {
     return [];
@@ -138,9 +167,6 @@ export async function searchFoods(query) {
   }
 }
 
-/**
- * Get detailed nutrients for a food item
- */
 export async function getFoodNutrients(foodId, label, measureUri = null, quantity = 1) {
   const cacheKey = `nutrients:${foodId}:${measureUri?.uri || 'default'}:${quantity}`;
   
@@ -200,9 +226,6 @@ export async function getFoodNutrients(foodId, label, measureUri = null, quantit
   }
 }
 
-/**
- * Fetch a random food item
- */
 export async function getRandomFood() {
   const tryFetch = async (query) => {
     try {
@@ -245,9 +268,6 @@ export async function getRandomFood() {
   return rand;
 }
 
-/**
- * Clear the cache
- */
 export function clearCache() {
   searchCache.clear();
 }

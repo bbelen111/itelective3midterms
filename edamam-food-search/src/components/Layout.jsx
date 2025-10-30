@@ -34,6 +34,22 @@ function Layout() {
               </li>
               <li className="nav-item">
                 <Link 
+                  className={`nav-link ${location.pathname === '/random' ? 'active' : ''}`} 
+                  to="/random"
+                >
+                  Random
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link 
+                  className={`nav-link ${location.pathname === '/library' ? 'active' : ''}`} 
+                  to="/library"
+                >
+                  Library
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link 
                   className={`nav-link ${location.pathname === '/about' ? 'active' : ''}`} 
                   to="/about"
                 >

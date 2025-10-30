@@ -224,3 +224,53 @@ export async function getFoodNutrients(foodId, label, measureUri = null, quantit
 export function clearCache() {
   searchCache.clear();
 }
+
+/**
+ * Fetch a random food item. This tries a broad search and picks one product at random.
+ * Falls back to a small list of seed queries if the broad search returns no results.
+ * @returns {Promise<object|null>} A single product object in the same shape as searchFoods items or null
+ */
+export async function getRandomFood() {
+  // Try a broad query first (empty search with large page_size)
+  const tryFetch = async (query) => {
+    try {
+      const url = `${BASE_URL}/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=100&fields=code,product_name,brands,categories,image_url,nutriments,serving_size,quantity`;
+      const response = await fetchWithRetry(url, {
+        headers: { 'User-Agent': USER_AGENT }
+      });
+      const data = await response.json();
+      const products = data.products || [];
+      return products.map(product => ({
+        foodId: product.code,
+        label: product.product_name || 'Unknown Product',
+        brand: product.brands || null,
+        category: product.categories?.split(',')[0]?.trim() || null,
+        image: product.image_url || null,
+        servingSize: product.serving_size || product.quantity || null,
+        nutrients: {
+          ENERC_KCAL: product.nutriments?.['energy-kcal_100g'] || product.nutriments?.['energy-kcal'] || 0,
+        },
+        rawProduct: product
+      })).filter(p => p.label && p.label !== 'Unknown Product');
+    } catch (err) {
+      console.warn('Random fetch attempt failed for query', query, err.message || err);
+      return [];
+    }
+  };
+
+  // First try a very broad fetch (empty query) — some servers accept it
+  let items = await tryFetch('');
+
+  // If no items, try a few seed queries
+  const seeds = ['chocolate', 'bread', 'milk', 'cheese', 'juice', 'rice', 'apple', 'cereal'];
+  let i = 0;
+  while ((!items || items.length === 0) && i < seeds.length) {
+    items = await tryFetch(seeds[i]);
+    i += 1;
+  }
+
+  if (!items || items.length === 0) return null;
+
+  const rand = items[Math.floor(Math.random() * items.length)];
+  return rand;
+}

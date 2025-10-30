@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getRandomFood, getFoodNutrients } from '../api/edamam';
+import { getRandomFood, getFoodNutrients } from '../api/apiService';
 
 function Random() {
   const [item, setItem] = useState(null);

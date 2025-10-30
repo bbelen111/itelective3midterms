@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getFoodNutrients } from '../api/edamam';
+import { getFoodNutrients } from '../api/apiService';
 
 function FoodDetail({ food, onClose }) {
   const [nutrients, setNutrients] = useState(null);

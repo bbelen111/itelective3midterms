@@ -2,7 +2,7 @@ import { useState } from 'react';
 import SearchBar from '../components/SearchBar';
 import ResultsList from '../components/ResultsList';
 import FoodDetail from '../components/FoodDetail';
-import { searchFoods } from '../api/edamam';
+import { searchFoods } from '../api/apiService';
 
 function FoodSearch() {
   const [results, setResults] = useState([]);

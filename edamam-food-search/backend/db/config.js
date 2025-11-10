@@ -5,7 +5,6 @@ dotenv.config();
 
 /**
  * MySQL Database Connection Pool
- * Configure your database credentials in .env file
  */
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',

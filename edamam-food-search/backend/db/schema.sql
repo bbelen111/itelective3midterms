@@ -1,14 +1,13 @@
 -- Food Search Database Schema
--- This schema replicates the essential attributes from the Open Food Facts API
 
 -- Create database if it doesn't exist
 CREATE DATABASE IF NOT EXISTS food_search_db;
 USE food_search_db;
 
--- Drop table if exists (for clean setup)
+-- Drop table if exists
 DROP TABLE IF EXISTS food_items;
 
--- Create food_items table with essential attributes
+-- Create food_items table
 CREATE TABLE food_items (
   id INT AUTO_INCREMENT PRIMARY KEY,
   food_id VARCHAR(255) NOT NULL UNIQUE,

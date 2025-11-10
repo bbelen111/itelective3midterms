@@ -1,13 +1,7 @@
 import db from '../db/config.js';
 
 /**
- * Food Item Model
- * Only the functions used by the application are exported here
- * (getAllFoodItems, createFoodItem, deleteFoodItem).
- */
-
-/**
- * Get all food items from database
+ * Get all
  */
 export const getAllFoodItems = async () => {
   try {
@@ -22,7 +16,7 @@ export const getAllFoodItems = async () => {
 };
 
 /**
- * Create a new food item
+ * Create new
  */
 export const createFoodItem = async (foodData) => {
   try {
@@ -88,7 +82,7 @@ export const createFoodItem = async (foodData) => {
 };
 
 /**
- * Delete a food item
+ * Delete food
  */
 export const deleteFoodItem = async (id) => {
   try {

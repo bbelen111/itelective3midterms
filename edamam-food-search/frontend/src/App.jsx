@@ -5,6 +5,7 @@ import About from './pages/About';
 import ErrorPage from './pages/ErrorPage';
 import Random from './pages/Random';
 import Library from './pages/Library';
+import AddFood from './pages/AddFood';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route index element={<FoodSearch />} />
           <Route path="random" element={<Random />} />
           <Route path="library" element={<Library />} />
+          <Route path="add-food" element={<AddFood />} />
           <Route path="about" element={<About />} />
           <Route path="*" element={<ErrorPage />} />
         </Route>

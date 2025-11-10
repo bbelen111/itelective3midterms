@@ -50,6 +50,14 @@ function Layout() {
               </li>
               <li className="nav-item">
                 <Link 
+                  className={`nav-link ${location.pathname === '/add-food' ? 'active' : ''}`} 
+                  to="/add-food"
+                >
+                  Add Food
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link 
                   className={`nav-link ${location.pathname === '/about' ? 'active' : ''}`} 
                   to="/about"
                 >
